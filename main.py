@@ -1,22 +1,19 @@
-import os, time, re
+import os, time
 import numpy as np
 import faiss
 import mysql.connector
-import asyncio
+from typing import Literal
 from dotenv import load_dotenv
 from mistralai import Mistral
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
 from langchain.embeddings.base import Embeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_core.output_parsers.string import StrOutputParser
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from pydantic import BaseModel, Field
-from typing import Literal
 from langgraph.graph import StateGraph, END
-
+from langchain.globals import set_llm_cache
+from langchain_community.cache import SQLiteCache
 
 load_dotenv()
 
@@ -44,6 +41,9 @@ embed_model = "mistral-embed"
 
 # Defining the Mistral Model
 Model = ChatMistralAI(model=llm_model, temperature=0)
+
+# Setting up Caching system
+set_llm_cache(SQLiteCache(database_path="./cache/query_cache.db"))
 
 # Loading the text file
 loader = TextLoader("Healthcare_data.txt")
@@ -115,7 +115,7 @@ def route_query_node(state: QueryState):
     2. If the question is about general knowledge, route it to 'Factual Database'.
     3. If the question is unrelated or cannot be answered using the given databases, return 'Irrelevant'.
     4. If you are unsure, do NOT assume an answer. Return 'Irrelevant' instead.
-    5. If the question contains gibberish, nonsense, or random text, also return 'Irrelevant'.
+    5. If the question contains gibberish, nonsense, personal question/remarks or random text, also return 'Irrelevant'.
     """
 
     prompt = ChatPromptTemplate.from_messages(
@@ -204,6 +204,7 @@ while True:
     user = input("\nUser: ")
     if user in ["quit", "q", "exit"]:
         connection.close()
+        print("AI: Goodbye user. Have a nice day")
         break
 
     result = app.invoke(QueryState(query=user))

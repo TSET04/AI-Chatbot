@@ -22,3 +22,4 @@ pickle
 scikit-learn
 faiss-cpu
 langgraph
+sqlite3
