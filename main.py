@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, END
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
+from conversation_memory import ConversationMemory
 
 load_dotenv()
 
@@ -44,6 +45,9 @@ Model = ChatMistralAI(model=llm_model, temperature=0)
 
 # Setting up Caching system
 set_llm_cache(SQLiteCache(database_path="./cache/query_cache.db"))
+
+# Setting up Memory system
+memory = ConversationMemory()
 
 # Loading the text file
 loader = TextLoader("Healthcare_data.txt")
@@ -86,8 +90,37 @@ class QueryState(BaseModel):
     datasource: str = ""
     response: str = ""
 
+# Class for histor storage
+class SummaryAndDict(BaseModel):
+    summary: str
+    key_value_pairs: dict
+
 # Define LangGraph
 workflow = StateGraph(QueryState)
+
+def memory_node(state: QueryState):
+    query = state.query
+    history = memory.get_history()
+
+    template = f""" You are an expert in understanding the past conversation's summary and factual information and based on that
+    you have to answer the user question
+    Question : {query}
+    Past Summary and Facts: {history} 
+
+    Rules:
+    1. You have to answer based on the past summary and facts only. Your goal is to provide clear, concise, and human-like answers to user questions. 
+    Avoid overly formal or robotic language, and try to sound natural and conversational.
+    2. If you are NOT able to answer or if you do NOT get any past summary and facts, do NOT assume anything just 
+    return a single word message "UNKNOWN".
+    """
+    
+    response = Model.invoke(template).content
+
+    if response=="UNKNOWN":
+        return state
+    
+    state.response = response
+    return {"response": response}
 
 # Implementing LLM based routing agent for graph's routing node
 class RouteQuery(BaseModel):
@@ -146,6 +179,9 @@ def rag_node(state: QueryState):
     Answer the following question based on this context:
     {context}
     Question: {state.query}
+
+    Your goal is to provide clear, concise, and human-like answers to user questions. 
+    Avoid overly formal or robotic language, and try to sound natural and conversational.
     """
     
     time.sleep(1)
@@ -182,22 +218,58 @@ def sql_node(state: QueryState):
     state.response = ' '.join(str(d[0]) for d in data) if data else "No Data Found"
     return {"response":state.response}
 
+def my_summarizer(state: QueryState):
+    query = state.query
+    response = state.response
+
+    template = f"""
+        You are an expert who will summarize and extract text from the following query and its response:
+
+        **Query**: {query}
+        **Response**: {response}
+
+        You have to do two things:
+        1. Summarize the query and its response in a single string.
+        2. Extract important information from the query and response in the form of key-value pairs.
+
+        Return the output as a JSON object with two fields:
+        - "summary": A string containing the summary of the query and response.
+        - "key_value_pairs": A dictionary containing the key-value pairs.
+    """
+
+    structured_llm = Model.with_structured_output(SummaryAndDict)
+    result = structured_llm.invoke(template)
+    summary = result.summary
+    key_value_pairs = result.key_value_pairs
+
+    memory.add(query, summary, key_value_pairs)
+    return state
+
+
 # Adding nodes to the graph
+workflow.add_node("memory_node", memory_node)
 workflow.add_node("route_query_node", route_query_node)
 workflow.add_node("rag_node", rag_node)
 workflow.add_node("sql_node", sql_node)
 workflow.add_node("irrelevant_node", irrelevant_node)
+workflow.add_node("my_summarizer", my_summarizer)
 
 # Adding edges to the graph
 workflow.add_conditional_edges(
     "route_query_node",
     lambda s: "rag_node" if s.datasource == "Factual Database" else ("sql_node" if s.datasource=="SQL Database" else "irrelevant_node")
 )
-workflow.add_edge("rag_node", END)
-workflow.add_edge("sql_node", END)
+
+workflow.add_conditional_edges(
+    "memory_node",
+    lambda s: END if s.response else "route_query_node"
+)
+
+workflow.add_edge("rag_node", "my_summarizer")
+workflow.add_edge("sql_node", "my_summarizer")
 workflow.add_edge("irrelevant_node", END)
 
-workflow.set_entry_point("route_query_node")
+workflow.set_entry_point("memory_node")
 app = workflow.compile()
 
 while True:
