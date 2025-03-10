@@ -15,6 +15,7 @@ from langgraph.graph import StateGraph, END
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
 from conversation_memory import ConversationMemory
+from System_Prompts import memory_prommpt, route_prompt, rag_node_prompt, sql_node_prompt, summarizer_prompt
 
 load_dotenv()
 
@@ -100,21 +101,8 @@ workflow = StateGraph(QueryState)
 
 def memory_node(state: QueryState):
     query = state.query
-    history = memory.get_history()
-
-    template = f""" You are an expert in understanding the past conversation's summary and factual information and based on that
-    you have to answer the user question
-    Question : {query}
-    Past Summary and Facts: {history} 
-
-    Rules:
-    1. You have to answer based on the past summary and facts only. Your goal is to provide clear, concise, and human-like answers to user questions. 
-    Avoid overly formal or robotic language, and try to sound natural and conversational.
-    2. If you are NOT able to answer or if you do NOT get any past summary and facts, do NOT assume anything just 
-    return a single word message "UNKNOWN".
-    """
-    
-    response = Model.invoke(template).content
+    history = memory.get_history()    
+    response = Model.invoke(memory_prommpt.format(query=query, history=history)).content
 
     if response=="UNKNOWN":
         return state
@@ -133,27 +121,11 @@ class RouteQuery(BaseModel):
 
 
 def route_query_node(state: QueryState):
+    time.sleep(1)
     structured_llm = Model.with_structured_output(RouteQuery)
-
-    # Routing Prompt 
-    system = """You are an expert at routing user questions. There are 2 databases: 
-    - **SQL (Hospital_database.sample_data)**: Stores structured patient data (ID, NAME, WEIGHT, AGE).
-    - **Factual (General Information DB)**: Contains general knowledge.
-
-    If the user question is irrelevant (not related to hospitals, healthcare, or health related factual knowledge), return 'irrelevant'.
-    If the question contains gibberish, nonsense, or random text, also return 'irrelevant'.
-    
-    Rules:
-    1. If the question is relevant to patient details (ID, NAME, WEIGHT, AGE), route it to 'SQL Database'.
-    2. If the question is about general knowledge, route it to 'Factual Database'.
-    3. If the question is unrelated or cannot be answered using the given databases, return 'Irrelevant'.
-    4. If you are unsure, do NOT assume an answer. Return 'Irrelevant' instead.
-    5. If the question contains gibberish, nonsense, personal question/remarks or random text, also return 'Irrelevant'.
-    """
-
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", system),
+            ("system", route_prompt),
             ("human", "{question}"),
         ]
     )
@@ -175,17 +147,8 @@ def rag_node(state: QueryState):
     retrieved_docs = [splits[i].page_content for i in indices[0]]
     context = "\n\n".join(retrieved_docs)
 
-    factual_template = f"""
-    Answer the following question based on this context:
-    {context}
-    Question: {state.query}
-
-    Your goal is to provide clear, concise, and human-like answers to user questions. 
-    Avoid overly formal or robotic language, and try to sound natural and conversational.
-    """
-    
     time.sleep(1)
-    response = Model.invoke(factual_template)
+    response = Model.invoke(rag_node_prompt.format(context=context, question=state.query))
     if isinstance(response, dict) and "content" in response:
         state.response = response["content"]
     elif hasattr(response, "content"):
@@ -196,22 +159,8 @@ def rag_node(state: QueryState):
     return {"response": state.response}
 
 def sql_node(state: QueryState):
-    database_template = """
-        You are an expert in converting English questions to SQL query. The SQL database
-        has the name Hospital_database with table name sample_data that has the following columns -
-        ID, NAME, WEIGHT and AGE 
-        
-        For example, 
-        Example 1 - How many people are present, the SQL command will be 
-        something like this- Select count(*) from sample_data;
-        Example 2 - What is the age of Shiv ? the SQL
-        command will be - Select age from sample_data where name = "Shiv";
-        also the sql code should not have ``` in the beginning or end and sql word in output.
-    """
-
-    sql_prompt = database_template + f"\n\nQuestion: {state.query}\nSQL Query:"
     time.sleep(1)
-    sql_query = Model.invoke(sql_prompt)
+    sql_query = Model.invoke(sql_node_prompt.format(question=state.query))
     cursor = connection.cursor()
     cursor.execute(sql_query.content)
     data = cursor.fetchall()
@@ -221,24 +170,8 @@ def sql_node(state: QueryState):
 def my_summarizer(state: QueryState):
     query = state.query
     response = state.response
-
-    template = f"""
-        You are an expert who will summarize and extract text from the following query and its response:
-
-        **Query**: {query}
-        **Response**: {response}
-
-        You have to do two things:
-        1. Summarize the query and its response in a single string.
-        2. Extract important information from the query and response in the form of key-value pairs.
-
-        Return the output as a JSON object with two fields:
-        - "summary": A string containing the summary of the query and response.
-        - "key_value_pairs": A dictionary containing the key-value pairs.
-    """
-
     structured_llm = Model.with_structured_output(SummaryAndDict)
-    result = structured_llm.invoke(template)
+    result = structured_llm.invoke(summarizer_prompt.format(question=query, response=response))
     summary = result.summary
     key_value_pairs = result.key_value_pairs
 
