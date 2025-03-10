@@ -236,7 +236,6 @@ def my_summarizer(state: QueryState):
     memory.add(query, summary, key_value_pairs)
     return state
 
-
 # Adding nodes to the graph
 workflow.add_node("memory_node", memory_node)
 workflow.add_node("route_query_node", route_query_node)
