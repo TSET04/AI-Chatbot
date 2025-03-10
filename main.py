@@ -15,7 +15,7 @@ from langgraph.graph import StateGraph, END
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
 from conversation_memory import ConversationMemory
-from System_Prompts import memory_prommpt, route_prompt, rag_node_prompt, sql_node_prompt, summarizer_prompt
+from System_Prompts import memory_prommpt, route_prompt, rag_node_prompt, sql_node_prompt, summarizer_prompt, sql_count_prompt, format_response
 
 load_dotenv()
 
@@ -58,6 +58,7 @@ documents = loader.load()
 text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 splits = text_splitter.split_documents(documents)
 
+# Custom Embedding class
 class MistralEmbedding(Embeddings):
     def embed_documents(self, texts):
         batch_size = 3
@@ -90,6 +91,7 @@ class QueryState(BaseModel):
     query: str
     datasource: str = ""
     response: str = ""
+    sql_subqueries: list[str] = []
 
 # Class for histor storage
 class SummaryAndDict(BaseModel):
@@ -104,7 +106,7 @@ def memory_node(state: QueryState):
     history = memory.get_history()    
     response = Model.invoke(memory_prommpt.format(query=query, history=history)).content
 
-    if response=="UNKNOWN":
+    if response.startswith("UNKNOWN"):
         return state
     
     state.response = response
@@ -119,7 +121,7 @@ class RouteQuery(BaseModel):
         description="Given a user question choose which database would be most relevant for answering their question",
     )
 
-
+# Route query node to choose for SQL/RAG/Irrelevant datasources
 def route_query_node(state: QueryState):
     time.sleep(1)
     structured_llm = Model.with_structured_output(RouteQuery)
@@ -135,10 +137,12 @@ def route_query_node(state: QueryState):
     state.datasource = category
     return state.datasource
 
+# Irrelevant node datasource
 def irrelevant_node(state: QueryState):
     state.response = "I'm sorry, but I can only assist with healthcare-related or hospital based questions."
     return {"response": state.response}
 
+# Rag node for factual database
 def rag_node(state: QueryState):
     # Retrieving the docs
     time.sleep(1)
@@ -158,16 +162,70 @@ def rag_node(state: QueryState):
 
     return {"response": state.response}
 
+# Function for extracting multiple sql questions out of a single one
+def sql_query_count(state: QueryState):
+    time.sleep(1)
+    query = state.query
+
+    response = Model.invoke(sql_count_prompt.format(question=query)).content
+    if response.startswith("MULTIPLE"):
+        decomposed = [q.strip() for q in response.replace("MULTIPLE:", "").split("\n") if q.strip()]
+        clean_queries = []
+        for q in decomposed:
+            if q[0].isdigit() and ". " in q:
+                clean_queries.append(q.split(". ", 1)[1])
+            else:
+                clean_queries.append(q)
+                
+        state.sql_subqueries = clean_queries
+    else:
+        state.sql_subqueries = []
+
+    return state
+
+# Function to fetch from sql db
+def fetch_sql_results(question):
+    try:
+        sql_query = Model.invoke(sql_node_prompt.format(question=question))
+        cursor = connection.cursor()
+        cursor.execute(sql_query.content)
+        data = cursor.fetchall()
+        result = ' '.join(str(d[0]) for d in data) if data else "No Data Found"
+        return result
+    except Exception as e:
+        return f"Error executing SQL query: {str(e)}"
+
+# Sql node to execute sql based questions
 def sql_node(state: QueryState):
     time.sleep(1)
-    sql_query = Model.invoke(sql_node_prompt.format(question=state.query))
-    cursor = connection.cursor()
-    cursor.execute(sql_query.content)
-    data = cursor.fetchall()
-    state.response = ' '.join(str(d[0]) for d in data) if data else "No Data Found"
-    return {"response":state.response}
+    if state.sql_subqueries:
+        results = []
+        for sub_query in state.sql_subqueries:
+            sub_result = fetch_sql_results(sub_query)
+            results.append(f"For '{sub_query}': {sub_result}")
+    
+        state.response = "\n\n".join(results)
+    else:
+        # Original single-query logic
+        data = fetch_sql_results(state.query)
+        state.response = data if data else "No Data Found"
 
+    return {"response": state.response}
+
+# Function to return a human - friendly response from model
+def format_response_node(state: QueryState):
+    time.sleep(1)
+    query = state.query
+    response = state.response
+
+    result = Model.invoke(format_response.format(question=query, response=response)).content
+    state.response = result
+    return {"response": state.response}
+
+
+# Function to store the summary of the question - answer pairs
 def my_summarizer(state: QueryState):
+    time.sleep(1)
     query = state.query
     response = state.response
     structured_llm = Model.with_structured_output(SummaryAndDict)
@@ -183,14 +241,17 @@ def my_summarizer(state: QueryState):
 workflow.add_node("memory_node", memory_node)
 workflow.add_node("route_query_node", route_query_node)
 workflow.add_node("rag_node", rag_node)
+workflow.add_node("sql_query_count", sql_query_count)
 workflow.add_node("sql_node", sql_node)
 workflow.add_node("irrelevant_node", irrelevant_node)
 workflow.add_node("my_summarizer", my_summarizer)
+workflow.add_node("format_response_node", format_response_node)
 
 # Adding edges to the graph
 workflow.add_conditional_edges(
     "route_query_node",
-    lambda s: "rag_node" if s.datasource == "Factual Database" else ("sql_node" if s.datasource=="SQL Database" else "irrelevant_node")
+    lambda s: ("sql_query_count" if s.datasource == "SQL Database" else 
+              ("rag_node" if s.datasource == "Factual Database" else "irrelevant_node"))
 )
 
 workflow.add_conditional_edges(
@@ -198,9 +259,12 @@ workflow.add_conditional_edges(
     lambda s: END if s.response else "route_query_node"
 )
 
+workflow.add_edge("sql_query_count", "sql_node")
 workflow.add_edge("rag_node", "my_summarizer")
 workflow.add_edge("sql_node", "my_summarizer")
+workflow.add_edge("my_summarizer", "format_response_node")
 workflow.add_edge("irrelevant_node", END)
+workflow.add_edge("format_response_node", END)
 
 workflow.set_entry_point("memory_node")
 app = workflow.compile()
