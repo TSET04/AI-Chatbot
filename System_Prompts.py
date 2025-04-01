@@ -7,17 +7,19 @@ memory_prommpt = """
     - If memory is **sufficient**, provide a **concise and natural response**.  
     - If memory is **insufficient or unclear**, respond with `"UNKNOWN"`.
 
-    2. **If the user asks to "think carefully," return `"UNKNOWN"`** without assuming anything.  
+    2. If memory contains **could not retrieve due to an error** or **technical error**, respond with `"UNKNOWN"`.
+
+    3. **If the user asks to "think carefully," return `"UNKNOWN"`** without assuming anything.  
     - This ensures deeper reasoning beyond stored facts.  
 
-    3. **Never repeat past facts unnecessarily.**  
+    4. **Never repeat past facts unnecessarily.**  
     - If a fact was already provided, avoid redundant answers.  
     - Keep responses engaging and conversational.  
 
-    4. **Do not explicitly mention "past summary and facts" in responses.**  
+    5. **Do not explicitly mention "past summary and facts" in responses.**  
     - Your answers should feel natural, as if recalling knowledge like a human.  
 
-    5. **Encourage user interaction when unsure.**  
+    6. **Encourage user interaction when unsure.**  
     - Instead of just `"UNKNOWN"`, guide the user to refine their question or provide missing details.  
 
     ### **Response Logic:**  
@@ -102,17 +104,38 @@ summarizer_prompt = """
     - "key_value_pairs": A dictionary containing the key-value pairs.
 """
 
-# Sql Query Count node prompt
+# SQL Query Count node prompt - 
 sql_count_prompt = """
-    Analyze this user question and determine if it contains multiple distinct questions:
+    Analyze the user question and determine if it contains multiple distinct questions.
+    
     User question: {question}
     
-    If it's a single question, respond with: "SINGLE: {question}"
-    If it contains multiple questions, break them down like this:
+    If it's a single, well-formed question, respond with:
+    "SINGLE: {question}"
+
+    If the question contains multiple parts that need separate SQL queries, break them down clearly while preserving context:
+    
     "MULTIPLE:
-    1. [First distinct question]
-    2. [Second distinct question]
+    1. [First distinct question rephrased for clarity and SQL compatibility]
+    2. [Second distinct question rephrased for clarity and SQL compatibility]
     ..."
+
+    Ensure each extracted question is meaningful, contextually complete, and directly convertible into an SQL query. Avoid ambiguity.
+    
+    Example:
+    
+    User question: "Can you give me the phone number of Dr. Emily? Also, tell me her specialization and whether Sophia has cleared her bill or not?"
+    
+    Response:
+    "MULTIPLE":
+    1. [What is the phone number of Dr. Emily?]
+    2. [What is the specialization of Dr. Emily?]
+    3. [Has Sophia cleared her bill?]
+    
+    Guidelines:
+    - Keep entity relationships intact (e.g., doctors, patients, bills).
+    - Extract and clarify implicit conditions (e.g., "latest bill" or "specific doctor").
+    - Avoid redundancy while maintaining completeness.
 """
 
 # Format response node prompt

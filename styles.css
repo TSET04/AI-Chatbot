@@ -1,0 +1,60 @@
+/* Input area outer */
+.stChatInput > div {
+    background-color: #F2F4F3;
+    border-color: #F2F4F3;
+}
+
+.stChatInput > div:focus-within {
+    border-color: #F2F4F3;
+}
+
+/* Entire input box */
+.stBottom > div > div{
+    background-color: #F2F4F3;
+    border-radius: 15px;
+    padding-bottom: 30px;
+}
+
+/* Input area inner text area */
+.stChatInput > div > div > div > textarea{
+    background-color: #F2F4F3;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #333333;
+    caret-color: #000000;
+}
+
+/* Extra line to be removed from box */
+.st-b1 {
+    background-color: transparent;
+}
+
+/* Sidebar */
+.stSidebar > div {
+    background-color: #E3F2FD;
+}
+
+.stChatInput > div > div:nth-child(3) > button > svg {
+    fill: #E8F5E9;
+}
+
+/* The User query box */
+.stChatMessage.st-emotion-cache-4oy321{
+    background-color: #F5DEB3;
+}
+
+/* The AI response box */
+.stChatMessage.st-emotion-cache-1c7y2kd{
+    background-color: #F5F5DC;
+}
+
+/* Fizing the input area */
+.stBottom{
+    background-color: #FAFAFA;
+}
+
+/* Moving the input area above */
+.stBottom > div{
+    margin-bottom: 20px;
+}

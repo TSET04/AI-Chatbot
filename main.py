@@ -1,4 +1,5 @@
 import os, time
+import streamlit as st
 import numpy as np
 import faiss
 import mysql.connector
@@ -40,6 +41,14 @@ chunk_overlap = 100
 batch_size = 5
 llm_model = "mistral-large-latest"
 embed_model = "mistral-embed"
+
+
+# Setting up page configuration
+st.set_page_config(page_title="AI Chatbot")
+
+# Loading css for web page
+with open("styles.css") as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Defining the Mistral Model
 Model = ChatMistralAI(model=llm_model, temperature=0)
@@ -93,7 +102,7 @@ class QueryState(BaseModel):
     response: str = ""
     sql_subqueries: list[str] = []
 
-# Class for histor storage
+# Class for history storage
 class SummaryAndDict(BaseModel):
     summary: str
     key_value_pairs: dict
@@ -164,7 +173,7 @@ def rag_node(state: QueryState):
 
 # Function for extracting multiple sql questions out of a single one
 def sql_query_count(state: QueryState):
-    time.sleep(1)
+    time.sleep(2)
     query = state.query
 
     response = Model.invoke(sql_count_prompt.format(question=query)).content
@@ -222,7 +231,6 @@ def format_response_node(state: QueryState):
     state.response = result
     return {"response": state.response}
 
-
 # Function to store the summary of the question - answer pairs
 def my_summarizer(state: QueryState):
     time.sleep(1)
@@ -268,12 +276,40 @@ workflow.add_edge("format_response_node", END)
 workflow.set_entry_point("memory_node")
 app = workflow.compile()
 
-while True:
-    user = input("\nUser: ")
-    if user in ["quit", "q", "exit"]:
-        connection.close()
-        print("AI: Goodbye user. Have a nice day")
-        break
+# Storing Model's responses with avatar info
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?", "avatar": "🤖"}]
 
-    result = app.invoke(QueryState(query=user))
-    print("AI: ", result.get('response', ""))
+# Display or clear chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"], avatar=message.get("avatar", None)):
+        st.write(message["content"])
+
+def clear_chat_history():
+    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?", "avatar": "🤖"}]
+
+st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+
+# Creating the input message part
+if prompt := st.chat_input(placeholder="Ask anything"):
+    user_message = {"role": "User", "content": prompt, "avatar": "👦🏻"}
+    st.session_state.messages.append(user_message)
+
+    with st.chat_message("User", avatar="👦🏻"):
+        st.write(prompt)
+
+# Final logic for output
+if st.session_state.messages[-1]["role"] != "assistant":
+    with st.chat_message("assistant", avatar="🤖"):
+        with st.spinner("Thinking..."):
+            result = app.invoke(QueryState(query=prompt))
+            response = result.get('response', "")
+            placeholder = st.empty()
+            full_response = ''
+            for item in response:
+                full_response += item
+                placeholder.markdown(full_response)
+            placeholder.markdown(full_response)
+
+    assistant_message = {"role": "assistant", "content": full_response, "avatar": "🤖"}
+    st.session_state.messages.append(assistant_message)

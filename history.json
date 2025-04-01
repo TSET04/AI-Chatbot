@@ -1,0 +1,393 @@
+[
+    {
+        "User": "Check if the doctor's bill is paid or not ?",
+        "summary": "The query asked to check if the doctor's bill is paid, but the response indicated an SQL syntax error near the '?' character at line 4.",
+        "facts": {
+            "Query": "Check if the doctor's bill is paid or not",
+            "Error Type": "SQL syntax error",
+            "Error Code": "1064 (42000)",
+            "Error Location": "near '?' at line 4"
+        },
+        "timestamp": "2025-03-11T14:44:44.336819"
+    },
+    {
+        "User": "Is the bill of Dr. William is paid or not ?",
+        "summary": "Dr. William's bill has been paid.",
+        "facts": {
+            "Doctor": "Dr. William",
+            "Bill Status": "Paid"
+        },
+        "timestamp": "2025-03-11T15:16:36.704031"
+    },
+    {
+        "User": "What was the amount paid to him ?",
+        "summary": "The amount paid to him was $300.00.",
+        "facts": {
+            "amount_paid": "300.00"
+        },
+        "timestamp": "2025-03-11T15:17:49.344405"
+    },
+    {
+        "User": "Is the amount paid by Sarah Williams ?",
+        "summary": "The payment status by Sarah Williams is pending.",
+        "facts": {
+            "Name": "Sarah Williams",
+            "Payment Status": "Pending"
+        },
+        "timestamp": "2025-03-11T15:18:45.078145"
+    },
+    {
+        "User": "No, I meant if the bill of Dr. William was paid by Sarah or someone else ?",
+        "summary": "The query asks who paid Dr. William's bill, and the response indicates that David paid it.",
+        "facts": {
+            "Doctor": "Dr. William",
+            "Payer": "David",
+            "Context": "Bill Payment"
+        },
+        "timestamp": "2025-03-11T15:20:53.665601"
+    },
+    {
+        "User": "No, I meant the contact number of David and also his email id",
+        "summary": "The query asks for David's contact number and email ID. The response provides David's contact number as 5432109876 but indicates an error in retrieving the email ID due to rate limit exceeded.",
+        "facts": {
+            "Contact Number of David": "5432109876",
+            "Email ID of David": "Error: Requests rate limit exceeded"
+        },
+        "timestamp": "2025-03-11T15:22:53.810271"
+    },
+    {
+        "User": "Okay, try now and get me his email id as well",
+        "summary": "The query asks to try again and get an email ID, and the response provides the name 'William'.",
+        "facts": {
+            "action": "retry and get email",
+            "name": "William"
+        },
+        "timestamp": "2025-03-11T15:23:30.646765"
+    },
+    {
+        "User": "Check carefully there is a patient by the name David Brown, I need his email id",
+        "summary": "The query asked to check for a patient named David Brown and requested his email ID. The response confirmed the presence of the patient but encountered an error while retrieving the email ID due to rate limit exceedance.",
+        "facts": {
+            "Patient Name": "David Brown",
+            "Patient Presence": "Confirmed",
+            "Email ID Request": "Error",
+            "Error Type": "Rate limit exceeded"
+        },
+        "timestamp": "2025-03-11T15:25:41.739280"
+    },
+    {
+        "User": "Can you tell me appointment status of David Brown ?",
+        "summary": "The query asked for the appointment status of David Brown, but the response indicated an error due to exceeding the requests rate limit.",
+        "facts": {
+            "Query": "Appointment status of David Brown",
+            "Response": "Error executing SQL query: Error response 429",
+            "Error Message": "Requests rate limit exceeded",
+            "API URL": "https://api.mistral.ai/v1/chat/completions"
+        },
+        "timestamp": "2025-03-18T11:20:21.578978"
+    },
+    {
+        "User": "Can you tell me appointment status of David Brown ?",
+        "summary": "The appointment status of David Brown is scheduled.",
+        "facts": {
+            "Name": "David Brown",
+            "Appointment Status": "Scheduled"
+        },
+        "timestamp": "2025-03-18T11:21:55.811500"
+    },
+    {
+        "User": "Can you tell me the diagnosis that Sarah Williams has gone through ?",
+        "summary": "Sarah Williams has been diagnosed with a Common Cold.",
+        "facts": {
+            "Patient Name": "Sarah Williams",
+            "Diagnosis": "Common Cold"
+        },
+        "timestamp": "2025-03-23T17:06:53.530816"
+    },
+    {
+        "User": "Okay, who is the doctor treating her ?",
+        "summary": "The query asks for the name of the doctor treating a patient, but the response indicates that no data was found.",
+        "facts": {
+            "Query": "Who is the doctor treating her?",
+            "Response": "No Data Found"
+        },
+        "timestamp": "2025-03-23T17:07:46.883720"
+    },
+    {
+        "User": "Check again who is treating Sarah Williams ?",
+        "summary": "The person treating Sarah Williams is Olivia.",
+        "facts": {
+            "Patient": "Sarah Williams",
+            "Treating Person": "Olivia"
+        },
+        "timestamp": "2025-03-23T17:09:09.620634"
+    },
+    {
+        "User": "Can you give me the phone number of Dr. Olivia ? Also tell me her specialization and whether Sarah has cleard her bill or not ?",
+        "summary": "The query asks for Dr. Olivia's phone number, her specialization, and the status of Sarah's bill. The response provides Dr. Olivia's phone number as 6655443322, her specialization as William, and Sarah's bill status as pending.",
+        "facts": {
+            "Dr. Olivia's Phone Number": "6655443322",
+            "Dr. Olivia's Specialization": "William",
+            "Sarah's Bill Status": "Pending"
+        },
+        "timestamp": "2025-03-23T17:13:29.509211"
+    },
+    {
+        "User": "No, I think you got it wrong for the Dr. Olivia's specialization, can you please check again ?",
+        "summary": "The query corrects a misunderstanding about Dr. Olivia's specialization, and the response clarifies that her specialization is Pediatrics.",
+        "facts": {
+            "Doctor": "Dr. Olivia",
+            "Specialization": "Pediatrics"
+        },
+        "timestamp": "2025-03-23T17:14:47.165009"
+    },
+    {
+        "User": "What is the assigned prescription to Alice ? And it was given by which doctor and when ?",
+        "summary": "The assigned prescription to Alice is painkillers and lifestyle changes, given on 2025-03-14. The doctor's information could not be retrieved due to an SQL syntax error.",
+        "facts": {
+            "Prescription": "Painkillers & lifestyle changes",
+            "Doctor": "Error executing SQL query",
+            "Date": "2025-03-14"
+        },
+        "timestamp": "2025-03-23T17:17:53.195595"
+    },
+    {
+        "User": "Can you tell me what is the safe amount to consume painkillers ?",
+        "summary": "The query asks about the safe amount to consume painkillers. The response indicates that the safe dosage varies by type of painkiller and individual health conditions. It provides typical adult doses for common over-the-counter painkillers: Acetaminophen (325-650 mg every 4-6 hours, max 4,000 mg/day), Ibuprofen (200-400 mg every 4-6 hours, max 1,200 mg/day), and Aspirin (325-650 mg every 4 hours, max 4,000 mg/day). It emphasizes consulting a healthcare provider for personalized advice.",
+        "facts": {
+            "Query": "Safe amount to consume painkillers",
+            "Acetaminophen Dose": "325-650 mg every 4-6 hours, max 4,000 mg/day",
+            "Ibuprofen Dose": "200-400 mg every 4-6 hours, max 1,200 mg/day",
+            "Aspirin Dose": "325-650 mg every 4 hours, max 4,000 mg/day",
+            "Recommendation": "Consult a healthcare provider for personalized advice"
+        },
+        "timestamp": "2025-03-23T17:21:34.484063"
+    },
+    {
+        "User": "Can you give me the phone number of Dr. Emily ? Also tell me her specialization and whether Sophia has cleard her bill or not ?",
+        "summary": "The query asks for Dr. Emily's phone number, her specialization, and the status of Sophia's bill. The response provides Dr. Emily's phone number as 8877665544, her specialization as William, and Sophia's bill status as Paid.",
+        "facts": {
+            "Dr. Emily's Phone Number": "8877665544",
+            "Dr. Emily's Specialization": "William",
+            "Sophia's Bill Status": "Paid"
+        },
+        "timestamp": "2025-03-27T11:13:16.896607"
+    },
+    {
+        "User": "Can you give me the phone number of Dr. Thomas ? Also tell me his specialization and whether Sophia has cleard her bill or not ?",
+        "summary": "The phone number of Dr. Thomas is 7766554433. His specialization is not available. Sophia has paid her bill.",
+        "facts": {
+            "Dr. Thomas Phone Number": "7766554433",
+            "Dr. Thomas Specialization": "No Data Found",
+            "Sophia Bill Status": "Paid"
+        },
+        "timestamp": "2025-03-27T11:18:27.639226"
+    },
+    {
+        "User": "Can you give me the phone number of Dr. Robert ? Also tell me his specialization and whether Sophia has cleard her bill or not ? ",
+        "summary": "The query asks for Dr. Robert's phone number, his specialization, and whether Sophia has cleared her bill. The response provides Dr. Robert's phone number as 9988776655, his specialization as Cardiology, and confirms that Sophia has paid her bill.",
+        "facts": {
+            "Dr. Robert's Phone Number": "9988776655",
+            "Dr. Robert's Specialization": "Cardiology",
+            "Sophia's Bill Status": "Paid"
+        },
+        "timestamp": "2025-03-27T11:25:42.704576"
+    },
+    {
+        "User": "What is the assigned prescription to Michael ? And it was given by which doctor and when ?",
+        "summary": "Michael was referred to physiotherapy by Dr. Thomas on 2025-03-12.",
+        "facts": {
+            "Patient": "Michael",
+            "Prescription": "Physiotherapy",
+            "Doctor": "Thomas",
+            "Date": "2025-03-12"
+        },
+        "timestamp": "2025-03-27T11:27:21.614359"
+    },
+    {
+        "User": "Okay, is it a serious treatment ?",
+        "summary": "The query asks whether certain treatments and healthcare practices are serious. The response details various treatments and healthcare practices, emphasizing their seriousness and importance in medical care and patient well-being. It covers a wide range of topics from gene therapy and medical devices to hospital protocols and mental health conditions, highlighting their effectiveness, safety, and critical roles in healthcare.",
+        "facts": {
+            "Query": "Is it a serious treatment?",
+            "Response Overview": "Details various treatments and healthcare practices, emphasizing their seriousness and importance.",
+            "Treatments and Practices": [
+                "Gene Therapy",
+                "Exoskeletons",
+                "Blockchain",
+                "Bionic Organs",
+                "AI in Diagnosis and Treatment Planning",
+                "Cryotherapy",
+                "Stem Cell Therapy",
+                "Deep Brain Stimulation",
+                "Virtual Reality",
+                "Phototherapy",
+                "AI in Pandemic Prediction",
+                "Diet in Preventing Chronic Diseases",
+                "Hospital Emergency Rooms",
+                "Infection Control in Hospitals",
+                "Hospital Formulary",
+                "Intensive Care Unit (ICU)",
+                "Medication Error Prevention",
+                "Mass Casualty Situations",
+                "Inpatient and Outpatient Care",
+                "Do Not Resuscitate (DNR) Order",
+                "Electronic Health Records (EHR)",
+                "Informed Consent",
+                "Patient Confidentiality",
+                "Hospital Social Workers",
+                "Critical Patient Transport",
+                "Emergency Stabilizing Care",
+                "Backup Generators",
+                "Radiology Department",
+                "Pathology Lab",
+                "General and Orthopedic Surgery",
+                "Hospital Pharmacy",
+                "NICU and PICU",
+                "Psychiatric Emergency Team and Inpatient Mental Health Units",
+                "Anesthesia Department",
+                "Cardiology Department",
+                "Burn Unit",
+                "Oncology Department",
+                "Hospital Dietitian",
+                "Step-Down Unit",
+                "Infection Control Team",
+                "Endoscopy Unit",
+                "Cath Lab",
+                "Trauma Team",
+                "Pain Management Clinic",
+                "Nursing Staff Shifts",
+                "Emergency Doctors",
+                "Pediatrics Department",
+                "Hip Replacement Surgery Recovery",
+                "Dengue Fever Symptoms",
+                "Hepatitis B Vaccine",
+                "Hypertension Management",
+                "Chemotherapy Side Effects",
+                "Aneurysm",
+                "Heart Attack and Cardiac Arrest",
+                "Liver Cirrhosis Causes",
+                "Endometriosis",
+                "Varicose Veins",
+                "Birth Control Pills",
+                "Blood Clot Symptoms",
+                "Crohn\u2019s Disease",
+                "Epilepsy Diagnosis",
+                "Liver Failure Signs",
+                "Beta Blockers",
+                "Lupus",
+                "Tuberculosis Symptoms",
+                "Tuberculosis Diagnosis",
+                "Diabetes Types",
+                "Diabetes Complications",
+                "Cataract",
+                "Cataract Surgery",
+                "Anemia",
+                "Arthritis Types",
+                "Autoimmune Disease",
+                "Lung Cancer Warning Signs",
+                "Leukemia",
+                "Kidney Stones",
+                "Alzheimer\u2019s Disease Signs",
+                "Hemophilia",
+                "Hepatitis C Transmission",
+                "Hernia",
+                "Bell\u2019s Palsy",
+                "Pancreatitis Causes",
+                "Bipolar Disorder",
+                "Cognitive Behavioral Therapy (CBT)",
+                "Seasonal Affective Disorder (SAD)",
+                "Lack of Sleep",
+                "Gut-Brain Connection",
+                "Meditation",
+                "PTSD Symptoms",
+                "Schizophrenia",
+                "Exercise for Depression",
+                "Brain Health Foods",
+                "Probiotics",
+                "ADHD",
+                "High Blood Pressure",
+                "Omega-3",
+                "AI in Radiology",
+                "Robotic Surgery",
+                "Biohacking",
+                "Nanotechnology",
+                "Wearable Health Devices"
+            ]
+        },
+        "timestamp": "2025-03-27T11:31:47.966907"
+    },
+    {
+        "User": "Help me get the phone number of Dr. Daniel ",
+        "summary": "The phone number of Dr. Daniel is 3322110099.",
+        "facts": {
+            "Doctor's Name": "Dr. Daniel",
+            "Phone Number": "3322110099"
+        },
+        "timestamp": "2025-03-30T15:59:31.173568"
+    },
+    {
+        "User": "Can you give me the phone number of Dr. Charlotte",
+        "summary": "The phone number of Dr. Charlotte is 4433221100.",
+        "facts": {
+            "Doctor's Name": "Dr. Charlotte",
+            "Phone Number": "4433221100"
+        },
+        "timestamp": "2025-03-30T22:49:49.236776"
+    },
+    {
+        "User": "Can you tell me the food items that are rich in vitamin A ?",
+        "summary": "The query asks for food items rich in vitamin A. The response indicates that the provided context does not mention specific food items rich in vitamin A, but generally known sources include carrots, sweet potatoes, spinach, kale, and liver.",
+        "facts": {
+            "Query": "Food items rich in vitamin A",
+            "Specific Food Items Mentioned in Context": "None",
+            "Generally Known Sources of Vitamin A": "carrots, sweet potatoes, spinach, kale, liver"
+        },
+        "timestamp": "2025-03-31T14:10:05.304886"
+    },
+    {
+        "User": "Tell me the specialization of Dr. Daniel",
+        "summary": "The query asked for the specialization of Dr. Daniel, but the response indicated that no data was found.",
+        "facts": {
+            "Query": "Specialization of Dr. Daniel",
+            "Response": "No Data Found"
+        },
+        "timestamp": "2025-03-31T14:25:05.284789"
+    },
+    {
+        "User": "Check again, the full name of Doctor is Dr. Daniel Anderson",
+        "summary": "The query asks to verify the full name of the doctor, which is stated as Dr. Daniel Anderson. The response confirms the first name as Daniel.",
+        "facts": {
+            "Doctor's Full Name": "Dr. Daniel Anderson",
+            "Confirmed First Name": "Daniel"
+        },
+        "timestamp": "2025-03-31T14:26:11.289703"
+    },
+    {
+        "User": "Check carefully, there might be information on Dr. Daniel specifically related to his specialization",
+        "summary": "The query asks for specific information about Dr. Daniel's specialization, and the response indicates that his specialization is in General Medicine.",
+        "facts": {
+            "Doctor": "Dr. Daniel",
+            "Specialization": "General Medicine"
+        },
+        "timestamp": "2025-03-31T14:29:51.145237"
+    },
+    {
+        "User": "What is the appointment status of Michael and what was his reason for appointment ? Also, what is the recommended diagnosis for him if his appointment is approved ?",
+        "summary": "Michael's appointment status is completed, and the reason for his appointment was a knee pain consultation. The recommended diagnosis could not be retrieved due to an SQL query error.",
+        "facts": {
+            "Appointment Status": "Completed",
+            "Reason for Appointment": "Knee pain consultation",
+            "Diagnosis Error": "Error executing SQL query: 3065 (HY000): Expression #1 of ORDER BY clause is not in SELECT list, references column 'hospitaldb.mr.treatment_date' which is not in SELECT list; this is incompatible with DISTINCT"
+        },
+        "timestamp": "2025-04-01T11:13:14.859947"
+    },
+    {
+        "User": "Please check again the recommended diagnosis for Michael",
+        "summary": "The recommended diagnosis for Michael is an ACL Tear.",
+        "facts": {
+            "Patient Name": "Michael",
+            "Diagnosis": "ACL Tear"
+        },
+        "timestamp": "2025-04-01T11:22:39.942215"
+    }
+]
