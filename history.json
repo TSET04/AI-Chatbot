@@ -1,16 +1,5 @@
 [
     {
-        "User": "Check if the doctor's bill is paid or not ?",
-        "summary": "The query asked to check if the doctor's bill is paid, but the response indicated an SQL syntax error near the '?' character at line 4.",
-        "facts": {
-            "Query": "Check if the doctor's bill is paid or not",
-            "Error Type": "SQL syntax error",
-            "Error Code": "1064 (42000)",
-            "Error Location": "near '?' at line 4"
-        },
-        "timestamp": "2025-03-11T14:44:44.336819"
-    },
-    {
         "User": "Is the bill of Dr. William is paid or not ?",
         "summary": "Dr. William's bill has been paid.",
         "facts": {
@@ -389,5 +378,15 @@
             "Diagnosis": "ACL Tear"
         },
         "timestamp": "2025-04-01T11:22:39.942215"
+    },
+    {
+        "User": "Hi, can you tell me the name of the patient Dr. Emily Davis is treating ? What is her specialization ?",
+        "summary": "Dr. Emily Davis is treating a patient named Alice and her specialization is Neurology.",
+        "facts": {
+            "Patient Name": "Alice",
+            "Doctor Name": "Emily Davis",
+            "Specialization": "Neurology"
+        },
+        "timestamp": "2025-04-08T10:45:47.301295"
     }
 ]

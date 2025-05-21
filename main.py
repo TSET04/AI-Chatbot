@@ -301,14 +301,16 @@ if prompt := st.chat_input(placeholder="Ask anything"):
 # Final logic for output
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant", avatar="🤖"):
+        placeholder = st.empty()
+        full_response = ""
+
         with st.spinner("Thinking..."):
-            result = app.invoke(QueryState(query=prompt))
-            response = result.get('response', "")
-            placeholder = st.empty()
-            full_response = ''
-            for item in response:
-                full_response += item
-                placeholder.markdown(full_response)
+            for chunk, metadata in app.stream(QueryState(query=prompt), stream_mode="messages"):
+                if chunk.content:
+                    full_response += chunk.content
+                    placeholder.markdown(full_response)
+                    # To add a small delay to make the streaming visible
+                    time.sleep(0.05)
             placeholder.markdown(full_response)
 
     assistant_message = {"role": "assistant", "content": full_response, "avatar": "🤖"}

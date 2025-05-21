@@ -4,7 +4,6 @@ mysql-connector-python
 pandas
 matplotlib
 python-dotenv
-python
 chromadb
 langchain
 langchain-openai
