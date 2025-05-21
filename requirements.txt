@@ -20,7 +20,6 @@ sentence-transformers
 scikit-learn
 faiss-cpu
 langgraph
-sqlite3
 wikipedia
 IPython
 streamlit
